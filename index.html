@@ -155,7 +155,7 @@
       <!-- Paso 2 -->
       <div id="step2" style="display:none;">
         <h3>Seleccioná un día y turno disponible 🗓️</h3>
-        <p>Hora de ingreso: turno mañana (09:00) y horario de ingreso turno tarde (13:00hs).</p>
+        <p>Hora de ingreso: turno mañana (09:00) y turno tarde (13:00hs).</p>
         <div id="calendar"></div>
         <div id="cuposInfo" class="cupos-info" aria-live="polite"></div>
         <div class="turno-btns" id="turnoBtns" style="display:none;">
@@ -169,7 +169,7 @@
       <div id="step3" style="display:none;">
         <h3>Datos para transferencia 💳</h3>
         <div class="info-box">
-          📝 <b>Para agendar su turno 🐩</b> debe abonar una seña de <b>$5000</b> por transferencia o, en caso de querer abonar la seña en efectivo, venir por el local en el horario de <b>09am a 17hs</b>.<br><br>
+          📝 <b>Para agendar su turno 🐩</b> debe abonar una seña de <b>$5000</b> por transferencia o venir al local (09–17 hs).<br><br>
           💬 La seña se descontará del total.
         </div>
 
@@ -214,20 +214,14 @@
       "Beagle","Pomerania","Border Collie","Schnauzer","Cocker Spaniel","Dálmata","Boxer",
       "Rottweiler","Shih Tzu","Bichon Frisé","Bulldog Inglés","Fox Terrier","Mastín",
       "Akita","Siberian Husky","Chihuahua","Pinscher","Pequinés","Australian Shepherd",
-      "Boston Terrier","Husky Siberiano","Otterhound","Setter Inglés","Vizsla","Weimaraner",
-      "Greyhound","Saluki","Irish Setter","Saint Bernard","Cairn Terrier","West Highland",
-      "American Bully","Bull Terrier","Glen of Imaal Terrier","Keeshond","Spaniel Bretón",
-      "Otro"
+      "Boston Terrier","Husky Siberiano","Otro"
     ];
-
     razasArray.forEach(r => {
       const opt = document.createElement('option');
-      opt.value = r;
-      opt.textContent = r;
+      opt.value = r; opt.textContent = r;
       document.getElementById('raza').appendChild(opt);
     });
 
-    // Inicializar Choices
     document.addEventListener("DOMContentLoaded", () => {
       new Choices("#raza", {
         searchEnabled: true,
@@ -239,8 +233,7 @@
       });
     });
 
-    // Mostrar campo "otra raza"
-    document.getElementById('raza').addEventListener('change', function(e){
+    document.getElementById('raza').addEventListener('change', e => {
       const v = e.target.value;
       if (v && v.toLowerCase() === 'otro') {
         document.getElementById('razaOtra').style.display = 'block';
@@ -251,26 +244,23 @@
       }
     });
 
-    // Navegación de pasos
-    document.getElementById('toStep2').addEventListener('click', (e) => {
+    // Navegación
+    document.getElementById('toStep2').addEventListener('click', e => {
       e.preventDefault();
       document.getElementById('step1').style.display = 'none';
       document.getElementById('step2').style.display = 'block';
       if (!window.calendarInitialized) initCalendar();
     });
-
     document.getElementById('volverPaso1').addEventListener('click', () => {
       document.getElementById('step2').style.display = 'none';
       document.getElementById('step1').style.display = 'block';
-      document.getElementById('cuposInfo').style.display = 'none';
-      document.getElementById('turnoBtns').style.display = 'none';
     });
-
     document.getElementById('volverPaso2').addEventListener('click', () => {
       document.getElementById('step3').style.display = 'none';
       document.getElementById('step2').style.display = 'block';
     });
 
+    // CALENDARIO
     function initCalendar() {
       const calendarEl = document.getElementById('calendar');
       const calendar = new FullCalendar.Calendar(calendarEl, {
@@ -280,53 +270,50 @@
         height: "auto",
         headerToolbar: { left: 'prev,next today', center: 'title', right: '' },
         validRange: { start: new Date().toISOString().split('T')[0] },
-        dateClick: function(info) {
+        dateClick: info => {
           const day = info.date.getDay();
-          if (day === 0) { alert("🚫 Domingo está cerrado. Elegí otro día."); return; }
+          if (day === 0) return alert("🚫 Domingo está cerrado.");
 
           const fecha = info.dateStr;
-          const ocupManana = Math.floor(Math.random() * 7);
-          const ocupTarde  = Math.floor(Math.random() * 7);
 
-          const dispManana = Math.max(0, 6 - ocupManana);
-          const dispTarde  = Math.max(0, 6 - ocupTarde);
-
-          const cuposInfo = document.getElementById('cuposInfo');
-          cuposInfo.style.display = 'block';
-          cuposInfo.textContent = `📅 ${fecha} — Mañana: ${dispManana} cupos | Tarde: ${dispTarde} cupos`;
-
-          document.getElementById('turnoBtns').style.display = 'flex';
-          document.getElementById('turnoManana').onclick = () => enviarDatos(fecha, 'Mañana');
-          document.getElementById('turnoTarde').onclick = () => enviarDatos(fecha, 'Tarde');
+          // 🔹 Consultar cupos reales desde Google Sheets
+          fetch("https://script.google.com/macros/s/AKfycbx-qZl14ewHn0cCoaR7WQpmmiLlTiz-nE0sK2KcCR5_4YpQzBWkZD2qvYWjEYUHm6vvOg/exec?fecha=" + fecha)
+            .then(res => res.json())
+            .then(data => {
+              const dispManana = data.manana;
+              const dispTarde = data.tarde;
+              const cuposInfo = document.getElementById('cuposInfo');
+              cuposInfo.style.display = 'block';
+              cuposInfo.textContent = `📅 ${fecha} — Mañana: ${dispManana} cupos | Tarde: ${dispTarde} cupos`;
+              document.getElementById('turnoBtns').style.display = 'flex';
+              document.getElementById('turnoManana').onclick = () => registrarTurno(fecha, 'Mañana');
+              document.getElementById('turnoTarde').onclick = () => registrarTurno(fecha, 'Tarde');
+            })
+            .catch(() => alert("⚠️ Error al obtener cupos desde la base de datos."));
         }
       });
       calendar.render();
       window.calendarInitialized = true;
     }
 
-    // 🚀 ENVIAR A GOOGLE SHEETS
-    function enviarDatos(fecha, turno) {
+    // 🔹 Envío a Google Sheets
+    function registrarTurno(fecha, turno) {
       const form = document.getElementById('formStep1');
-      const datos = new FormData(form);
-      datos.append('fecha', fecha);
-      datos.append('turno', turno);
+      const data = new FormData(form);
+      data.append('fecha', fecha);
+      data.append('turno', turno);
 
-      fetch('https://script.google.com/macros/s/AKfycbx-qZl14ewHn0cCoaR7WQpmmiLlTiz-nE0sK2KcCR5_4YpQzBWkZD2qvYWjEYUHm6vvOg/exec', {
+      fetch("https://script.google.com/macros/s/AKfycbx-qZl14ewHn0cCoaR7WQpmmiLlTiz-nE0sK2KcCR5_4YpQzBWkZD2qvYWjEYUHm6vvOg/exec", {
         method: 'POST',
-        body: datos
+        body: data
       })
-      .then(res => res.text())
-      .then(resp => {
-        alert('✅ Turno registrado correctamente.');
+      .then(r => r.text())
+      .then(() => {
         document.getElementById('step2').style.display = 'none';
         document.getElementById('step3').style.display = 'block';
       })
-      .catch(err => {
-        console.error(err);
-        alert('❌ Error al registrar el turno.');
-      });
+      .catch(() => alert("⚠️ Error al registrar el turno."));
     }
   </script>
 </body>
 </html>
-
