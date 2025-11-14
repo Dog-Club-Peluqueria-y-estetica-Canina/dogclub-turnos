@@ -48,12 +48,18 @@
 
     .btn{ display:inline-flex; align-items:center; justify-content:center; background:var(--turquesa); color:#fff; border:none; padding:12px 16px; border-radius:10px; font-weight:700; cursor:pointer; margin-top:18px; gap:8px; font-size:15px; transition: all 0.3s ease; }
     .btn:hover{ background:var(--turquesa-oscuro); transform: translateY(-2px); box-shadow:0 6px 15px rgba(38,198,218,0.25);}
+    .btn.secondary{ background:#2e8f92; }
+    .btn.secondary:hover{ background:#23797c; }
 
     #calendar{ max-width:780px; margin:20px auto; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.05); overflow:hidden; }
     .turno-btns{ display:flex; justify-content:center; gap:20px; margin-top:15px; animation: fadeIn 0.4s ease; }
     .turno-btns button{ background:var(--turquesa); color:white; border:none; padding:14px 24px; border-radius:12px; cursor:pointer; font-weight:bold; transition:0.2s; font-size:16px; }
     .turno-btns button:hover{ background:#1fa3b7; transform: scale(1.05); }
 
+    .fc-day-sun{ background-color:#fcebea !important; color:#999 !important; }
+    .fc-day-today{ background-color:#e0f7fa !important; }
+
+    /* Contenedor de cupos */
     .cupos-info {
       background: #e0f7fa;
       border: 1px solid #b2ebf2;
@@ -67,6 +73,26 @@
       display: none;
     }
 
+    /* Paso 3 */
+    .qr-section { text-align: center; margin-top: 20px; }
+    .qr-section img { width: 220px; height: auto; border-radius: 10px; margin-bottom: 15px; }
+    .bank-info { text-align: left; margin: 0 auto; max-width: 420px; font-size: 16px; }
+    .bank-info p { display: flex; align-items: center; gap: 8px; margin: 6px 0; }
+
+    /* Caja de aviso */
+    .info-box {
+      background-color: #fff3cd;
+      border: 1px solid #ffeeba;
+      color: #856404;
+      padding: 14px;
+      border-radius: 10px;
+      margin: 15px auto 25px auto;
+      max-width: 600px;
+      font-size: 15px;
+      line-height: 1.5;
+    }
+
+    /* Footer */
     footer { background-color: #ffffff; border-top: 3px solid var(--turquesa); display: flex; justify-content: space-between; align-items: stretch; padding: 20px; flex-wrap: wrap; gap: 20px; margin-top: 40px; }
     footer iframe { border: none; border-radius: 12px; width: 48%; height: 250px; }
     footer .contacto { width: 48%; display: flex; flex-direction: column; justify-content: center; gap: 6px; font-size: 15px; }
@@ -90,20 +116,20 @@
           <input id="nombreDueno" name="nombreDueno" type="text" maxlength="20" required>
 
           <label for="celular">Celular *</label>
-          <input id="celular" name="celular" type="tel" maxlength="20" pattern="[0-9]{6,20}" required>
+          <input id="celular" name="celular" type="tel" maxlength="20" pattern="[0-9]{6,20}" title="Solo números, mínimo 6 dígitos" required>
 
           <label for="nombreMascota">Nombre de la mascota *</label>
           <input id="nombreMascota" name="nombreMascota" type="text" maxlength="15" required>
 
           <label for="edad">Edad *</label>
-          <input id="edad" name="edad" type="text" maxlength="3" pattern="[0-9]{1,3}" required>
+          <input id="edad" name="edad" type="text" maxlength="3" pattern="[0-9]{1,3}" title="Solo números (máx. 3 cifras)" required>
 
           <label for="raza">Raza *</label>
           <select id="raza" name="raza" required></select>
 
           <div id="razaOtra" style="display:none; margin-top:8px;">
             <label for="otraRaza">Especificá la raza *</label>
-            <input id="otraRaza" name="otraRaza" type="text" maxlength="15">
+            <input id="otraRaza" name="otraRaza" type="text" maxlength="15" placeholder="Escribí la raza">
           </div>
 
           <label for="tamano">Tamaño *</label>
@@ -120,6 +146,7 @@
             <label><input type="checkbox" name="servicio" value="Corte"> ✂️ Corte</label>
           </div>
 
+          <!-- NUEVA SECCIÓN COMBINADA -->
           <label>¿Tiene algún problema de salud o alergia?</label>
           <div>
             <label><input type="radio" name="saludAlergia" value="No" checked> No</label>
@@ -131,14 +158,14 @@
             <input id="descripcionSaludAlergia" name="descripcionSaludAlergia" type="text" maxlength="25">
           </div>
 
-          <button type="submit" class="btn" id="toStep2">Siguiente — Elegir fecha 🗓️</button>
+          <button type="button" class="btn" id="toStep2">Siguiente — Elegir fecha 🗓️</button>
         </form>
       </div>
 
       <!-- Paso 2 -->
       <div id="step2" style="display:none;">
         <h3>Seleccioná un día y turno disponible 🗓️</h3>
-        <p>Hora de ingreso: mañana (09:00) o tarde (13:00).</p>
+        <p>Hora de ingreso: turno mañana (09:00) y horario de ingreso turno tarde (13:00hs).</p>
         <div id="calendar"></div>
         <div id="cuposInfo" class="cupos-info" aria-live="polite"></div>
         <div class="turno-btns" id="turnoBtns" style="display:none;">
@@ -151,75 +178,192 @@
       <!-- Paso 3 -->
       <div id="step3" style="display:none;">
         <h3>Datos para transferencia 💳</h3>
-        <p>Aboná la seña de $5000 por transferencia (CBU o alias en QR).</p>
-        <img src="qr.png" alt="Código QR de pago" width="200">
+
+        <!-- 🔔 MENSAJE AGREGADO -->
+        <div class="info-box">
+          📝 <b>Para agendar su turno 🐩</b> debe abonar una seña de <b>$5000</b> por transferencia o, en caso de querer abonar la seña en efectivo, venir por el local en el horario de <b>09am a 17hs</b>.<br><br>
+          💬 La seña se descontará del total.
+        </div>
+
+        <div class="qr-section">
+          <img src="qr.png" alt="Código QR de pago">
+          <div class="bank-info">
+            <p>🏦 <b>CBU:</b> —</p>
+            <p>💬 <b>Alias:</b> Dog.club.lr</p>
+            <p>👤 <b>Cuenta a nombre de:</b> Claudio Enzo Jimenez</p>
+            <p>🪪 <b>DNI:</b> 20-35284426-9</p>
+            <p>🏛️ <b>Banco:</b> Mercado Pago</p>
+          </div>
+        </div>
+        <button class="btn secondary" id="volverPaso2">⬅️ Volver</button>
       </div>
     </div>
   </div>
 
+  <!-- Pie de página -->
+  <footer>
+    <iframe src="https://www.google.com/maps?q=Av.+Ángel+Vicente+Peñaloza,+F5300+La+Rioja&output=embed" allowfullscreen="" loading="lazy"></iframe>
+
+    <div class="contacto">
+      <p>📍 <b>Dirección:</b> Av. Ángel Vicente Peñaloza, F5300 La Rioja</p>
+      <p>📧 <b>Email:</b> contacto@dogclub.com</p>
+      <p>📸 <b>Instagram:</b> <a href="https://www.instagram.com/dog_clubb/" target="_blank">@dog_clubb</a></p>
+      <p>📱 <b>WhatsApp:</b> <a href="https://api.whatsapp.com/message/YIYD6PN5YHWSL1?autoload=1&app_absent=0" target="_blank">+54 9 3804 104255</a></p>
+    </div>
+  </footer>
+
   <script>
+    /* Mostrar/Ocultar campo combinado */
     document.querySelectorAll('input[name="saludAlergia"]').forEach(radio => {
       radio.addEventListener('change', e => {
-        document.getElementById('campoSaludAlergia').style.display = (e.target.value === 'Si') ? 'block' : 'none';
+        document.getElementById('campoSaludAlergia').style.display = e.target.value === 'Si' ? 'block' : 'none';
       });
     });
 
-    const razasArray = ["Caniche","Labrador Retriever","Golden Retriever","Beagle","Otro"];
-    razasArray.forEach(r => {
+    /* RAZAS */
+    // Texto visible (lo que ve el usuario) + value que enviará el form (normalizado para coincidir con tu Apps Script)
+    const razasOptions = [
+      { text: "Caniche", value: "Caniche" },
+      { text: "Labrador Retriever", value: "Labrador" }, // value -> "Labrador" para que el script lo cuente como 2
+      { text: "Pastor Alemán", value: "Ovejero Alemán" }, // value -> "Ovejero Alemán" (según lo que chequea tu script)
+      { text: "Golden Retriever", value: "Golden Retriever" },
+      { text: "Bulldog Francés", value: "Bulldog Francés" },
+      { text: "Beagle", value: "Beagle" },
+      { text: "Pomerania", value: "Pomerania" },
+      { text: "Border Collie", value: "Border Collie" },
+      { text: "Schnauzer", value: "Schnauzer" },
+      { text: "Cocker Spaniel", value: "Cocker Spaniel" },
+      { text: "Dálmata", value: "Dálmata" },
+      { text: "Boxer", value: "Boxer" },
+      { text: "Rottweiler", value: "Rottweiler" },
+      { text: "Shih Tzu", value: "Shih Tzu" },
+      { text: "Bichon Frisé", value: "Bichon Frisé" },
+      { text: "Bulldog Inglés", value: "Bulldog Inglés" },
+      { text: "Fox Terrier", value: "Fox Terrier" },
+      { text: "Mastín", value: "Mastín" },
+      { text: "Akita", value: "Akita" },
+      { text: "Siberian Husky", value: "Siberian Husky" },
+      { text: "Chihuahua", value: "Chihuahua" },
+      { text: "Pinscher", value: "Pinscher" },
+      { text: "Pequinés", value: "Pequinés" },
+      { text: "Australian Shepherd", value: "Australian Shepherd" },
+      { text: "Boston Terrier", value: "Boston Terrier" },
+      { text: "Husky Siberiano", value: "Husky Siberiano" },
+      { text: "Otterhound", value: "Otterhound" },
+      { text: "Setter Inglés", value: "Setter Inglés" },
+      { text: "Vizsla", value: "Vizsla" },
+      { text: "Weimaraner", value: "Weimaraner" },
+      { text: "Greyhound", value: "Greyhound" },
+      { text: "Saluki", value: "Saluki" },
+      { text: "Irish Setter", value: "Irish Setter" },
+      { text: "Saint Bernard", value: "Saint Bernard" },
+      { text: "Cairn Terrier", value: "Cairn Terrier" },
+      { text: "West Highland", value: "West Highland" },
+      { text: "American Bully", value: "American Bully" },
+      { text: "Bull Terrier", value: "Bull Terrier" },
+      { text: "Glen of Imaal Terrier", value: "Glen of Imaal Terrier" },
+      { text: "Keeshond", value: "Keeshond" },
+      { text: "Spaniel Bretón", value: "Spaniel Bretón" },
+      { text: "Otro", value: "Otro" }
+    ];
+
+    const razaSelectEl = document.getElementById('raza');
+    razasOptions.forEach(r => {
       const opt = document.createElement('option');
-      opt.value = r;
-      opt.textContent = r;
-      document.getElementById('raza').appendChild(opt);
+      opt.value = r.value;
+      opt.textContent = r.text;
+      razaSelectEl.appendChild(opt);
     });
 
+    // Iniciar Choices después de cargar opciones
+    document.addEventListener("DOMContentLoaded", () => {
+      new Choices("#raza", {
+        searchEnabled: true,
+        shouldSort: false,
+        itemSelectText: '',
+        placeholderValue: 'Buscar raza...',
+        searchResultLimit: 50,
+        fuseOptions: { threshold: 0.3 }
+      });
+    });
+
+    // Mostrar campo "otra raza"
     document.getElementById('raza').addEventListener('change', function(e){
       const v = e.target.value;
-      document.getElementById('razaOtra').style.display = (v === 'Otro') ? 'block' : 'none';
+      if (v && v.toLowerCase() === 'otro') {
+        document.getElementById('razaOtra').style.display = 'block';
+        document.getElementById('otraRaza').setAttribute('required','required');
+      } else {
+        document.getElementById('razaOtra').style.display = 'none';
+        document.getElementById('otraRaza').removeAttribute('required');
+      }
     });
 
-    document.getElementById('toStep2').addEventListener('click', (e) => {
-      e.preventDefault();
+    /* Navegación entre pasos */
+    document.getElementById('toStep2').addEventListener('click', () => {
       document.getElementById('step1').style.display = 'none';
       document.getElementById('step2').style.display = 'block';
       if (!window.calendarInitialized) initCalendar();
     });
-
     document.getElementById('volverPaso1').addEventListener('click', () => {
       document.getElementById('step2').style.display = 'none';
       document.getElementById('step1').style.display = 'block';
       document.getElementById('cuposInfo').style.display = 'none';
       document.getElementById('turnoBtns').style.display = 'none';
     });
+    document.getElementById('volverPaso2').addEventListener('click', () => {
+      document.getElementById('step3').style.display = 'none';
+      document.getElementById('step2').style.display = 'block';
+    });
+
+    /* Calendario: consultar availability real (doGet) en lugar de aleatorio */
+    const SCRIPT_BASE_URL = "https://script.google.com/macros/s/AKfycbx-qZl14ewHn0cCoaR7WQpmmiLlTiz-nE0sK2KcCR5_4YpQzBWkZD2qvYWjEYUHm6vvOg/exec";
 
     function initCalendar() {
-      const calendar = new FullCalendar.Calendar(document.getElementById('calendar'), {
+      const calendarEl = document.getElementById('calendar');
+      const calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'dayGridMonth',
         selectable: true,
         editable: false,
+        height: "auto",
         headerToolbar: { left: 'prev,next today', center: 'title', right: '' },
         validRange: { start: new Date().toISOString().split('T')[0] },
         dateClick: async function(info) {
-          const fecha = info.dateStr;
-          const cuposInfo = document.getElementById('cuposInfo');
-          cuposInfo.style.display = 'block';
-          cuposInfo.textContent = "⏳ Cargando disponibilidad...";
+          const day = info.date.getDay();
+          if (day === 0) { alert("🚫 Domingo está cerrado. Elegí otro día."); return; }
 
+          const fecha = info.dateStr;
+
+          // Llamar a tu doGet para obtener cupos reales
           try {
-            const resp = await fetch(`https://script.google.com/macros/s/AKfycbx-qZl14ewHn0cCoaR7WQpmmiLlTiz-nE0sK2KcCR5_4YpQzBWkZD2qvYWjEYUHm6vvOg/exec?fecha=${fecha}`);
-            const data = await resp.json();
-            if (data.error) {
-              cuposInfo.textContent = "⚠️ Error al obtener cupos.";
+            const resp = await fetch(SCRIPT_BASE_URL + "?fecha=" + encodeURIComponent(fecha));
+            if (!resp.ok) throw new Error("Error en la consulta de disponibilidad");
+            const json = await resp.json();
+
+            // Si el script devuelve un error en JSON lo mostramos
+            if (json.error) {
+              alert("Error del servidor: " + json.error);
               return;
             }
 
-            cuposInfo.textContent = `📅 ${fecha} — Mañana: ${data.turnoManana}/6 | Tarde: ${data.turnoTarde}/6`;
+            const dispManana = (typeof json.turnoManana === 'number') ? json.turnoManana : 0;
+            const dispTarde  = (typeof json.turnoTarde === 'number') ? json.turnoTarde : 0;
 
+            const cuposBox = document.getElementById('cuposInfo');
+            cuposBox.innerHTML = `
+              <div>📅 <strong>${fecha}</strong></div>
+              <div style="margin-top:8px;">🌞 Turno Mañana: <strong>${dispManana}/6 disponibles</strong></div>
+              <div style="margin-top:6px;">🌇 Turno Tarde: <strong>${dispTarde}/6 disponibles</strong></div>
+            `;
+            cuposBox.style.display = 'block';
             document.getElementById('turnoBtns').style.display = 'flex';
-            document.getElementById('turnoManana').onclick = () => enviarDatos(fecha, 'Mañana');
-            document.getElementById('turnoTarde').onclick = () => enviarDatos(fecha, 'Tarde');
+
+            // botones reservar: guardamos fecha y turno (la función enviarDatos validará en servidor)
+            document.getElementById('turnoManana').onclick = () => elegirTurno(fecha, 'Mañana');
+            document.getElementById('turnoTarde').onclick  = () => elegirTurno(fecha, 'Tarde');
           } catch (err) {
             console.error(err);
-            cuposInfo.textContent = "❌ Error al conectar con el servidor.";
+            alert("No se pudo consultar la disponibilidad. Intentá nuevamente.");
           }
         }
       });
@@ -227,23 +371,57 @@
       window.calendarInitialized = true;
     }
 
-    function enviarDatos(fecha, turno) {
-      const form = document.getElementById('formStep1');
-      const datos = new FormData(form);
-      datos.append('fecha', fecha);
-      datos.append('turno', turno);
+    function elegirTurno(fecha, turno) {
+      enviarDatos(fecha, turno);
+    }
 
-      fetch('https://script.google.com/macros/s/AKfycbx-qZl14ewHn0cCoaR7WQpmmiLlTiz-nE0sK2KcCR5_4YpQzBWkZD2qvYWjEYUHm6vvOg/exec', {
-        method: 'POST',
-        body: datos
-      })
-      .then(res => res.text())
-      .then(() => {
-        alert('✅ Turno registrado correctamente.');
+    /* Envío al Google Apps Script (doPost) */
+    async function enviarDatos(fecha, turno) {
+      const form = document.getElementById('formStep1');
+
+      // validación simple antes de enviar: required fields del form
+      if (!form.checkValidity()) {
+        alert("Completá todos los campos obligatorios antes de continuar.");
+        return;
+      }
+
+      const formData = new FormData(form);
+
+      // Si el usuario eligió "Otro" en raza y escribió otraRaza, mandamos esa cadena.
+      // Nota: la <select> ya manda el value que coincide con lo que espera el Apps Script
+      formData.append('fecha', fecha);
+      formData.append('turno', turno);
+
+      try {
+        const response = await fetch(SCRIPT_BASE_URL, {
+          method: "POST",
+          body: formData
+        });
+
+        const text = await response.text();
+
+        if (!response.ok) {
+          // mostrar text si el servidor devuelve 'Cupo lleno' u otro mensaje
+          alert("❌ Error al guardar: " + text);
+          return;
+        }
+
+        // servidor responde 'OK' o 'Cupo lleno' etc.
+        if (text && text.toLowerCase().includes('cupo')) {
+          // por ejemplo 'Cupo lleno'
+          alert("❌ " + text);
+          return;
+        }
+
+        alert("✅ Turno guardado correctamente.\n" + text);
         document.getElementById('step2').style.display = 'none';
         document.getElementById('step3').style.display = 'block';
-      })
-      .catch(() => alert('❌ Error al registrar el turno.'));
+        document.getElementById('cuposInfo').style.display = 'none';
+        document.getElementById('turnoBtns').style.display = 'none';
+      } catch (error) {
+        console.error(error);
+        alert("❌ Error al guardar el turno. Verificá la conexión o el enlace de Google Script.");
+      }
     }
   </script>
 </body>
